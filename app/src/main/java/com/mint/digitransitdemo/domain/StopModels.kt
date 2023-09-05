@@ -2,22 +2,22 @@ package com.mint.digitransitdemo.domain
 
 import com.mint.digitransitdemo.type.WheelchairBoarding
 
-data class StopsByRadius(
+data class StopsModel(
     val stops: List<BaseStop>,
     val pageInfo: PageInfo
 )
 
 data class BaseStop(
-    val gtfsId: String,
-    val name: String,
-    val lat: Double,
-    val lon: Double,
-    val wheelchairBoarding: WheelchairBoardingType
+    val gtfsId: String = "",
+    val name: String = "",
+    val lat: Double = 0.0,
+    val lon: Double = 0.0,
+    val wheelchairBoarding: WheelchairBoardingType = WheelchairBoardingType.UNKNOWN
 )
 
 data class PageInfo(
     val hasNextPage: Boolean,
-    val endCursor: Boolean
+    val endCursor: String?
 )
 
 enum class WheelchairBoardingType {

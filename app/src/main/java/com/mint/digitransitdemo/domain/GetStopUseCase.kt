@@ -1,10 +1,10 @@
 package com.mint.digitransitdemo.domain
 
-class GetStopsUseCase(
-    private val stopClient: StopClient
+class GetStopUseCase(
+    private val stopRepository: StopRepository
 ) {
 
-    suspend fun execute(lat: Double, lon: Double, radius: Int): List<BaseStop> {
-        return stopClient.getStops(lat, lon, radius)
+    suspend fun execute(id: String): DetailStop? {
+        return stopRepository.getStop(id)
     }
 }
