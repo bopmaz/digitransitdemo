@@ -1,9 +1,10 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.apollo)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kapt)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.secrets.gradle)
 }
 
 android {
@@ -62,22 +63,31 @@ dependencies {
 
     implementation(libs.androidx.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.paging.compose)
+    implementation(libs.androidx.paging.runtime)
+
+    implementation(libs.accompanist.permissions)
 
     implementation(libs.lifecycle)
-    implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.compose)
     implementation(libs.lifecycle.viewmodel)
 
     implementation(libs.apollo)
 
-    implementation(platform(libs.androidx.compose.bom))
-
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
     kapt(libs.hilt.ext.compiler)
+
+    implementation(libs.logging.interceptor)
+
+    implementation(libs.play.services.location)
+    implementation(libs.play.services.map)
+    implementation(libs.map.compose)
 
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
