@@ -1,4 +1,4 @@
-package com.mint.digitransitdemo.ui.theme
+package com.mint.digitransitdemo.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

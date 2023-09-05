@@ -1,0 +1,20 @@
+query Stops($lat: Float!, $lon: Float!, $radius: Int!, $after: String) {
+    stopsByRadius(lat: $lat, lon: $lon, radius: $radius, first: 10, after: $after) {
+        edges {
+            node {
+                stop {
+                    gtfsId
+                    name
+                    lat
+                    lon
+                    wheelchairBoarding
+                }
+                distance
+            }
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+    }
+}

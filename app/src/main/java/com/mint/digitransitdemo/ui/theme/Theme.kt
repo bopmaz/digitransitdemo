@@ -1,4 +1,4 @@
-package com.mint.digitransitdemo.ui.theme
+package com.mint.digitransitdemo.presentation.theme
 
 import android.app.Activity
 import android.os.Build
