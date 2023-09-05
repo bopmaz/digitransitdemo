@@ -1,46 +1,90 @@
-package com.mint.digitransitdemo.presentation.ui
+package com.mint.digitransitdemo.ui
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.location.Location
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.mint.digitransitdemo.presentation.theme.DigitransitDemoTheme
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.mint.digitransitdemo.presentation.StopsScreen
+import com.mint.digitransitdemo.presentation.StopsViewModel
+import com.mint.digitransitdemo.ui.theme.DigitransitDemoTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         setContent {
             DigitransitDemoTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
+                val permissionsState = rememberMultiplePermissionsState(
+                    permissions = listOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(
+                    key1 = lifecycleOwner,
+                    effect = {
+                        val observer = LifecycleEventObserver { _, event ->
+                            if (event == Lifecycle.Event.ON_START) {
+                                permissionsState.launchMultiplePermissionRequest()
+                            }
+                        }
+                        lifecycleOwner.lifecycle.addObserver(observer)
+                        onDispose {
+                            lifecycleOwner.lifecycle.removeObserver(observer)
+                        }
+                    }
+                )
+
+                val viewModel = hiltViewModel<StopsViewModel>()
+                StopsScreen(
+                    viewModel = viewModel,
+                    onSelectedStop = viewModel::selectStop
+                )
+                permissionsState.permissions.forEach { perm ->
+                    when (perm.permission) {
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION -> {
+                            if (permissionsState.allPermissionsGranted) {
+                                setCurrentLocation {
+                                    viewModel.updateCurrentLocation(
+                                        lat = it.latitude,
+                                        lon = it.longitude
+                                    )
+                                    viewModel.getStops()
+                                }
+                            } else {
+                                viewModel.updateCurrentLocation(lat = 60.1699, lon = 24.9384)
+                                viewModel.getStops()
+                            }
+                        }
+                    }
                 }
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DigitransitDemoTheme {
-        Greeting("Android")
+    @SuppressLint("MissingPermission")
+    private fun setCurrentLocation(callback: (Location) -> Unit) {
+        fusedLocationClient.lastLocation.addOnSuccessListener {
+            callback(it)
+        }
     }
 }
