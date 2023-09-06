@@ -11,17 +11,18 @@ import com.mint.digitransitdemo.domain.WheelchairBoardingType
 import com.mint.digitransitdemo.type.WheelchairBoarding
 
 fun StopsQuery.StopsByRadius.toStopsModel(): StopsModel {
-    val stopList = this.edges?.map {
-        BaseStop(
-            gtfsId = it?.node?.stop?.gtfsId ?: "",
-            name = it?.node?.stop?.name ?: "",
-            lat = it?.node?.stop?.lat ?: 0.0,
-            lon = it?.node?.stop?.lon ?: 0.0,
-            wheelchairBoarding = WheelchairBoardingType.fromWheelchairBoarding(
-                it?.node?.stop?.wheelchairBoarding ?: WheelchairBoarding.UNKNOWN__
+    val stopList =
+        this.edges?.filter { !(it?.node?.stop?.gtfsId?.contains("MATKA") ?: true) }?.map {
+            BaseStop(
+                gtfsId = it?.node?.stop?.gtfsId ?: "",
+                name = it?.node?.stop?.name ?: "",
+                lat = it?.node?.stop?.lat ?: 0.0,
+                lon = it?.node?.stop?.lon ?: 0.0,
+                wheelchairBoarding = WheelchairBoardingType.fromWheelchairBoarding(
+                    it?.node?.stop?.wheelchairBoarding ?: WheelchairBoarding.UNKNOWN__
+                )
             )
-        )
-    } ?: emptyList()
+        } ?: emptyList()
 
     val pageInfo = PageInfo(
         hasNextPage = this.pageInfo.hasNextPage,

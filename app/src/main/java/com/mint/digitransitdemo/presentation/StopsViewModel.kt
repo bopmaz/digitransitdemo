@@ -99,4 +99,4 @@ data class StopsState(
     val pageId: String = ""
 )
 
-private const val DEFAULT_RADIUS = 3000
+private const val DEFAULT_RADIUS = 1500
