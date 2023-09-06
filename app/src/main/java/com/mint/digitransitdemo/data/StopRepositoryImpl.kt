@@ -5,7 +5,6 @@ import androidx.paging.PagingConfig
 import com.apollographql.apollo3.ApolloClient
 import com.mint.digitransitdemo.StopQuery
 import com.mint.digitransitdemo.domain.DetailStop
-import com.mint.digitransitdemo.domain.StopRepository
 
 class StopRepositoryImpl(
     private val apolloClient: ApolloClient

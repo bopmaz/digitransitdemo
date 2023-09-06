@@ -12,7 +12,6 @@ import com.mint.digitransitdemo.domain.GetStopsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
@@ -25,12 +24,12 @@ class StopsViewModel @Inject constructor(
     private val getStopsUseCase: GetStopsUseCase
 ) : ViewModel() {
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean>
-        get() = _isRefreshing.asStateFlow()
     private val _state = MutableStateFlow(StopsState())
+    private var _stopsPagingData: Flow<PagingData<BaseStop>> = flowOf()
+
     val state = _state.asStateFlow()
-    var stopsPagingData: Flow<PagingData<BaseStop>> = flowOf()
+    val stopsPagingData: Flow<PagingData<BaseStop>>
+        get() = _stopsPagingData
 
     init {
         viewModelScope.launch {
@@ -45,14 +44,15 @@ class StopsViewModel @Inject constructor(
     fun getStops() {
         viewModelScope.launch {
             _state.update {
-                stopsPagingData = getStopsUseCase.execute(
+                _stopsPagingData = getStopsUseCase.execute(
                     lat = it.currentLocation.latitude,
                     lon = it.currentLocation.longitude,
                     radius = DEFAULT_RADIUS
                 ).cachedIn(viewModelScope)
 
                 it.copy(
-                    isLoading = false
+                    isLoading = false,
+                    isRefreshing = false
                 )
             }
         }
@@ -93,10 +93,10 @@ class StopsViewModel @Inject constructor(
 
 data class StopsState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val selectedStop: DetailStop? = null,
     val currentLocation: Location = Location(""),
-    val shouldLoadMore: Boolean = true,
     val pageId: String = ""
 )
 
-private const val DEFAULT_RADIUS = 500
+private const val DEFAULT_RADIUS = 3000

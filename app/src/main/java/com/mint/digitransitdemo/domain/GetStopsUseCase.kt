@@ -1,6 +1,7 @@
 package com.mint.digitransitdemo.domain
 
 import androidx.paging.PagingData
+import com.mint.digitransitdemo.data.StopRepository
 import kotlinx.coroutines.flow.Flow
 
 class GetStopsUseCase(

@@ -2,11 +2,11 @@ package com.mint.digitransitdemo.di
 
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.network.okHttpClient
-import com.mint.digitransitdemo.data.StopRepositoryImpl
 import com.mint.digitransitdemo.data.AuthorizationInterceptor
+import com.mint.digitransitdemo.data.StopRepository
+import com.mint.digitransitdemo.data.StopRepositoryImpl
 import com.mint.digitransitdemo.domain.GetStopUseCase
 import com.mint.digitransitdemo.domain.GetStopsUseCase
-import com.mint.digitransitdemo.domain.StopRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

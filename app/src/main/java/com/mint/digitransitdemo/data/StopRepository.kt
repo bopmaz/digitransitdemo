@@ -1,6 +1,8 @@
-package com.mint.digitransitdemo.domain
+package com.mint.digitransitdemo.data
 
 import androidx.paging.PagingData
+import com.mint.digitransitdemo.domain.BaseStop
+import com.mint.digitransitdemo.domain.DetailStop
 import kotlinx.coroutines.flow.Flow
 
 interface StopRepository {

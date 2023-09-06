@@ -1,5 +1,7 @@
 package com.mint.digitransitdemo.domain
 
+import com.mint.digitransitdemo.data.StopRepository
+
 class GetStopUseCase(
     private val stopRepository: StopRepository
 ) {

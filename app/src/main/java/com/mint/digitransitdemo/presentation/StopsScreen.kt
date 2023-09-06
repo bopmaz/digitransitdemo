@@ -26,6 +26,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,7 +35,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.google.android.gms.maps.model.CameraPosition
@@ -60,15 +60,17 @@ import com.mint.digitransitdemo.util.toFormattedTime
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun StopsScreen(
-    viewModel: StopsViewModel,
-    onSelectedStop: (id: String) -> Unit,
-    onDismiss: () -> Unit
+    viewModel: StopsViewModel
 ) {
+
     val state by viewModel.state.collectAsState()
     val stopList = viewModel.stopsPagingData.collectAsLazyPagingItems()
-    val refreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val pullRefreshState =
+        rememberPullRefreshState(state.isRefreshing, onRefresh = {
+            stopList.refresh()
+        })
+    val composeScope = rememberCoroutineScope()
 
-    val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = { stopList.refresh() })
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -84,7 +86,7 @@ fun StopsScreen(
                     LatLng(
                         state.currentLocation.latitude,
                         state.currentLocation.longitude
-                    ), 15f
+                    ), 14f
                 )
             }
 
@@ -126,7 +128,9 @@ fun StopsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(CardHeight)
-                                .clickable { onSelectedStop(stop.gtfsId) }
+                                .clickable {
+                                    viewModel.selectStop(stop.gtfsId)
+                                }
                         )
                     }
                 }
@@ -135,7 +139,9 @@ fun StopsScreen(
             state.selectedStop?.let {
                 StopDialog(
                     detailStop = it,
-                    onDismiss = { onDismiss() },
+                    onDismiss = {
+                        viewModel.clearSelectedStop()
+                    },
                     Modifier
                         .clip(RoundedCornerShape(Corner6))
                         .background(Color.White)
@@ -146,7 +152,7 @@ fun StopsScreen(
         }
 
         PullRefreshIndicator(
-            refreshing = refreshing,
+            refreshing = state.isRefreshing,
             state = pullRefreshState,
             modifier = Modifier.align(alignment = Alignment.TopCenter)
         )

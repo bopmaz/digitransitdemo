@@ -39,7 +39,10 @@ class StopsPagingSource(
             } else {
                 val stopsModel = stopsResponse.data?.stopsByRadius?.toStopsModel()
                 val prevKey = params.key
-                val nextKey = stopsModel?.pageInfo?.endCursor
+                val nextKey =
+                    stopsResponse.data?.stopsByRadius?.pageInfo?.hasNextPage.let {
+                        if (it == true) stopsModel?.pageInfo?.endCursor else null
+                    }
                 LoadResult.Page(
                     data = stopsModel?.stops ?: emptyList(),
                     prevKey = prevKey,

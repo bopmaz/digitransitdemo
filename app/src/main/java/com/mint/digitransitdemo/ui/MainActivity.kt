@@ -38,6 +38,8 @@ class MainActivity : ComponentActivity() {
                 )
 
                 val lifecycleOwner = LocalLifecycleOwner.current
+                val viewModel = hiltViewModel<StopsViewModel>()
+
                 DisposableEffect(
                     key1 = lifecycleOwner,
                     effect = {
@@ -53,11 +55,8 @@ class MainActivity : ComponentActivity() {
                     }
                 )
 
-                val viewModel = hiltViewModel<StopsViewModel>()
                 StopsScreen(
-                    viewModel = viewModel,
-                    onSelectedStop = viewModel::selectStop,
-                    onDismiss = viewModel::clearSelectedStop
+                    viewModel = viewModel
                 )
                 permissionsState.permissions.forEach { perm ->
                     when (perm.permission) {
