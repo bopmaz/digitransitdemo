@@ -1,8 +1,12 @@
 package com.mint.digitransitdemo.domain
 
 data class DetailStop(
-    val gtfsId: String,
     val name: String,
-    val lat: Double,
-    val lon: Double
+    val itineraryList: List<ItineryDetail>
+)
+
+data class ItineryDetail(
+    val arrival: Int,
+    val departure: Int,
+    val headsign: String
 )

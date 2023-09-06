@@ -12,6 +12,8 @@ val DefaultElevation = 6.dp
 val CardHeight = 80.dp
 val MapHeight = 250.dp
 
+val Corner6 = 6.dp
+
 val TitleStyle = TextStyle(
     fontSize = 22.sp,
     fontWeight = FontWeight.Medium

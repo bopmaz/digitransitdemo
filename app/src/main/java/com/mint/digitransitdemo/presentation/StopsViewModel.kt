@@ -68,6 +68,14 @@ class StopsViewModel @Inject constructor(
         }
     }
 
+    fun clearSelectedStop() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(selectedStop = null)
+            }
+        }
+    }
+
     fun updateCurrentLocation(lat: Double, lon: Double) {
         val updatedLocation = _state.value.currentLocation
         updatedLocation.latitude = lat

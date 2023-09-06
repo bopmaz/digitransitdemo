@@ -4,6 +4,7 @@ import com.mint.digitransitdemo.StopQuery
 import com.mint.digitransitdemo.StopsQuery
 import com.mint.digitransitdemo.domain.BaseStop
 import com.mint.digitransitdemo.domain.DetailStop
+import com.mint.digitransitdemo.domain.ItineryDetail
 import com.mint.digitransitdemo.domain.PageInfo
 import com.mint.digitransitdemo.domain.StopsModel
 import com.mint.digitransitdemo.domain.WheelchairBoardingType
@@ -31,10 +32,15 @@ fun StopsQuery.StopsByRadius.toStopsModel(): StopsModel {
 }
 
 fun StopQuery.Stop.toDetailStop(): DetailStop {
+    val itineraryList = this.stoptimesWithoutPatterns?.map {
+        ItineryDetail(
+            arrival = it?.realtimeArrival ?: 0,
+            departure = it?.realtimeDeparture ?: 0,
+            headsign = it?.headsign ?: ""
+        )
+    } ?: emptyList()
     return DetailStop(
-        gtfsId = gtfsId,
         name = name,
-        lon = lon ?: 0.0,
-        lat = lat ?: 0.0
+        itineraryList = itineraryList
     )
 }

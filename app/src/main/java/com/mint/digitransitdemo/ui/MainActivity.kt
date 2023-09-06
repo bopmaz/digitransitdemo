@@ -56,7 +56,8 @@ class MainActivity : ComponentActivity() {
                 val viewModel = hiltViewModel<StopsViewModel>()
                 StopsScreen(
                     viewModel = viewModel,
-                    onSelectedStop = viewModel::selectStop
+                    onSelectedStop = viewModel::selectStop,
+                    onDismiss = viewModel::clearSelectedStop
                 )
                 permissionsState.permissions.forEach { perm ->
                     when (perm.permission) {

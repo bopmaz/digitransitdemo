@@ -1,19 +1,10 @@
 query Stop($gtfs_id: String!) {
     stop(id: $gtfs_id) {
-        gtfsId
         name
-        lat
-        lon
-        patterns {
-            code
-            directionId
+        stoptimesWithoutPatterns {
+            realtimeArrival
+            realtimeDeparture
             headsign
-            route {
-                gtfsId
-                shortName
-                longName
-                mode
-            }
         }
     }
 }
