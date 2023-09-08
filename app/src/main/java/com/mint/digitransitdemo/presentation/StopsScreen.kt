@@ -24,9 +24,9 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -63,96 +64,115 @@ fun StopsScreen(
     viewModel: StopsViewModel
 ) {
 
-    val state by viewModel.state.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val location by viewModel.location.collectAsState()
     val stopList = viewModel.stopsPagingData.collectAsLazyPagingItems()
+    val selectedStop by viewModel.selectedStop.collectAsState()
+
     val pullRefreshState =
-        rememberPullRefreshState(state.isRefreshing, onRefresh = {
+        rememberPullRefreshState(uiState == UIState.Refreshing, onRefresh = {
             stopList.refresh()
         })
-    val composeScope = rememberCoroutineScope()
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            LatLng(
+                location.latitude,
+                location.longitude
+            ), 14f
+        )
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-
-        if (state.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-            val cameraPositionState = rememberCameraPositionState {
-                position = CameraPosition.fromLatLngZoom(
-                    LatLng(
-                        state.currentLocation.latitude,
-                        state.currentLocation.longitude
-                    ), 14f
+        when (uiState) {
+            UIState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
 
-            Column {
-                GoogleMap(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(MapHeight),
-                    cameraPositionState = cameraPositionState
-                ) {
-                    stopList.itemSnapshotList.items.forEach {
-                        Marker(
-                            state = MarkerState(position = LatLng(it.lat, it.lon)),
-                            title = it.name,
-                        )
-                    }
-                }
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pullRefresh(pullRefreshState)
-                ) {
+            UIState.Refreshing -> {}
 
-                    if (stopList.loadState.refresh == LoadState.Loading) {
-                        item {
-                            Text(
-                                text = "Waiting for items to load",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentWidth(Alignment.CenterHorizontally)
+            is UIState.Success -> {
+                LaunchedEffect(key1 = location) {
+                    cameraPositionState.animate(
+                        update = CameraUpdateFactory.newCameraPosition(
+                            CameraPosition(
+                                LatLng(
+                                    location.latitude,
+                                    location.longitude
+                                ), 14f, 0f, 0f
+                            )
+                        ),
+                        durationMs = 1000
+                    )
+                }
+                Column {
+                    GoogleMap(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(MapHeight),
+                        cameraPositionState = cameraPositionState
+                    ) {
+                        stopList.itemSnapshotList.items.forEach {
+                            Marker(
+                                state = MarkerState(position = LatLng(it.lat, it.lon)),
+                                title = it.name,
                             )
                         }
                     }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pullRefresh(pullRefreshState)
+                    ) {
+                        if (stopList.loadState.refresh == LoadState.Loading) {
+                            item {
+                                Text(
+                                    text = "Waiting for items to load",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentWidth(Alignment.CenterHorizontally)
+                                )
+                            }
+                        }
 
-                    items(count = stopList.itemCount) { index ->
-                        val stop = stopList[index] ?: BaseStop()
-                        StopCard(
-                            stop = stop,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(CardHeight)
-                                .clickable {
-                                    viewModel.selectStop(stop.gtfsId)
-                                }
-                        )
+                        items(count = stopList.itemCount) { index ->
+                            val stop = stopList[index] ?: BaseStop()
+                            StopCard(
+                                stop = stop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(CardHeight)
+                                    .clickable {
+                                        viewModel.selectStop(stop.gtfsId)
+                                    }
+                            )
+                        }
                     }
                 }
-            }
 
-            state.selectedStop?.let {
-                StopDialog(
-                    detailStop = it,
-                    onDismiss = {
-                        viewModel.clearSelectedStop()
-                    },
-                    Modifier
-                        .clip(RoundedCornerShape(Corner6))
-                        .background(Color.White)
-                        .padding(Padding16)
-                        .size(300.dp, 500.dp)
-                )
+                selectedStop?.let {
+                    StopDialog(
+                        detailStop = it,
+                        onDismiss = {
+                            viewModel.clearSelectedStop()
+                        },
+                        Modifier
+                            .clip(RoundedCornerShape(Corner6))
+                            .background(Color.White)
+                            .padding(Padding16)
+                            .size(300.dp, 500.dp)
+                    )
+                }
             }
         }
 
         PullRefreshIndicator(
-            refreshing = state.isRefreshing,
+            refreshing = uiState == UIState.Refreshing,
             state = pullRefreshState,
             modifier = Modifier.align(alignment = Alignment.TopCenter)
         )

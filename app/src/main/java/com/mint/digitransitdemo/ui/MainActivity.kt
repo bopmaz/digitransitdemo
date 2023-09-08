@@ -68,11 +68,9 @@ class MainActivity : ComponentActivity() {
                                         lat = it.latitude,
                                         lon = it.longitude
                                     )
-                                    viewModel.getStops()
                                 }
                             } else {
                                 viewModel.updateCurrentLocation(lat = 60.1699, lon = 24.9384)
-                                viewModel.getStops()
                             }
                         }
                     }

@@ -24,79 +24,59 @@ class StopsViewModel @Inject constructor(
     private val getStopsUseCase: GetStopsUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(StopsState())
+    private val _uiState = MutableStateFlow<UIState>(UIState.Loading)
+    private var _location = MutableStateFlow(Location(""))
+    private var _selectedStop = MutableStateFlow<DetailStop?>(null)
     private var _stopsPagingData: Flow<PagingData<BaseStop>> = flowOf()
 
-    val state = _state.asStateFlow()
+    val uiState = _uiState.asStateFlow()
+    val location = _location.asStateFlow()
+    val selectedStop = _selectedStop.asStateFlow()
     val stopsPagingData: Flow<PagingData<BaseStop>>
         get() = _stopsPagingData
 
-    init {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = true
-                )
-            }
-        }
-    }
-
-    fun getStops() {
-        viewModelScope.launch {
-            _state.update {
-                _stopsPagingData = getStopsUseCase.execute(
-                    lat = it.currentLocation.latitude,
-                    lon = it.currentLocation.longitude,
-                    radius = DEFAULT_RADIUS
-                ).cachedIn(viewModelScope)
-
-                it.copy(
-                    isLoading = false,
-                    isRefreshing = false
-                )
-            }
-        }
-    }
-
     fun selectStop(id: String) {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    selectedStop = getStopUseCase.execute(id)
-                )
+            _selectedStop.update {
+                getStopUseCase.execute(id)
             }
         }
     }
 
     fun clearSelectedStop() {
         viewModelScope.launch {
-            _state.update {
-                it.copy(selectedStop = null)
+            _selectedStop.update {
+                null
             }
         }
     }
 
     fun updateCurrentLocation(lat: Double, lon: Double) {
-        val updatedLocation = _state.value.currentLocation
-        updatedLocation.latitude = lat
-        updatedLocation.longitude = lon
-
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    currentLocation = updatedLocation
-                )
+            _uiState.update {
+                UIState.Loading
+            }
+            _location.update {
+                it.latitude = lat
+                it.longitude = lon
+                it
+            }
+            _stopsPagingData = getStopsUseCase.execute(
+                lat = _location.value.latitude,
+                lon = _location.value.longitude,
+                radius = DEFAULT_RADIUS
+            ).cachedIn(viewModelScope)
+            _uiState.update {
+                UIState.Success
             }
         }
     }
 }
 
-data class StopsState(
-    val isLoading: Boolean = false,
-    val isRefreshing: Boolean = false,
-    val selectedStop: DetailStop? = null,
-    val currentLocation: Location = Location(""),
-    val pageId: String = ""
-)
+sealed class UIState {
+    object Loading : UIState()
+    object Refreshing : UIState()
+    object Success : UIState()
+}
 
 private const val DEFAULT_RADIUS = 1500
